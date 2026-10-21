@@ -1,0 +1,36 @@
+{
+  "name": "no-more-bugs",
+  "version": "0.1.0",
+  "description": "Testing guardrails for coding agents: planned scenarios, red-first tests, independent reviews, run history and a local dashboard. Works with any test runner that writes JUnit, NUnit, TRX or Dart JSON reports.",
+  "type": "module",
+  "bin": {
+    "no-more-bugs": "skills/using-no-more-bugs/scripts/nmb.mjs",
+    "nmb": "skills/using-no-more-bugs/scripts/nmb.mjs"
+  },
+  "files": [
+    "skills/",
+    "hooks/",
+    "commands/",
+    ".claude-plugin/",
+    "integrations/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test --test-concurrency=1 \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["testing", "tdd", "agents", "claude-code", "codex", "agent-skills", "junit", "dashboard", "flaky-tests"],
+  "author": "Devashish thakur <work.devashishthakur@gmail.com>",
+  "homepage": "https://github.com/devashish-thakur/no-more-bugs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devashish-thakur/no-more-bugs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/devashish-thakur/no-more-bugs/issues"
+  },
+  "license": "MIT"
+}

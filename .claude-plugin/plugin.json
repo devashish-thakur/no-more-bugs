@@ -1,0 +1,13 @@
+{
+  "name": "no-more-bugs",
+  "version": "0.1.0",
+  "description": "Testing guardrails for coding agents: plan test scenarios with you, write them in your project's own framework, prove each fails before it passes, review them independently, and track every run on a local dashboard.",
+  "author": {
+    "name": "Devashish thakur",
+    "email": "work.devashishthakur@gmail.com"
+  },
+  "homepage": "https://github.com/devashish-thakur/no-more-bugs",
+  "repository": "https://github.com/devashish-thakur/no-more-bugs",
+  "license": "MIT",
+  "keywords": ["testing", "tdd", "test-plan", "dashboard", "flaky-tests", "quality"]
+}

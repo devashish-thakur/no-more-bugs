@@ -1,0 +1,14 @@
+{
+  "name": "no-more-bugs",
+  "owner": {
+    "name": "Devashish thakur",
+    "email": "work.devashishthakur@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "no-more-bugs",
+      "source": "./",
+      "description": "Testing guardrails for coding agents, with a local test dashboard."
+    }
+  ]
+}

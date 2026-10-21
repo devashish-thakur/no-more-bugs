@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>no-more-bugs</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --series-1: #2a78d6;
+  --good: #0ca30c;
+  --good-text: #006300;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --skip: #898781;
+  --wash-good: rgba(12, 163, 12, 0.10);
+  --wash-bad: rgba(208, 59, 59, 0.10);
+  --wash-warn: rgba(250, 178, 25, 0.16);
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #222220;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --series-1: #3987e5;
+    --good-text: #0ca30c;
+    --wash-good: rgba(12, 163, 12, 0.16);
+    --wash-bad: rgba(208, 59, 59, 0.18);
+    --wash-warn: rgba(250, 178, 25, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #222220;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --series-1: #3987e5;
+  --good-text: #0ca30c;
+  --wash-good: rgba(12, 163, 12, 0.16);
+  --wash-bad: rgba(208, 59, 59, 0.18);
+  --wash-warn: rgba(250, 178, 25, 0.14);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 var(--font); }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px 64px; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 18px 0 14px; }
+.brand { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+.brand span { color: var(--muted); font-weight: 500; }
+.updated { color: var(--muted); font-size: 12px; margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.live { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
+.live.off { background: var(--muted); }
+nav.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--grid); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+nav.tabs a { padding: 9px 14px; text-decoration: none; color: var(--ink-2); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+nav.tabs a.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+nav.tabs a .n { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.theme { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-size: 12px; color: var(--ink-2); }
+
+section.view { padding-top: 20px; display: grid; gap: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.card h2 { font-size: 14px; margin: 0 0 12px; font-weight: 600; }
+.card h2 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+
+.banner { border-radius: 10px; padding: 14px 18px; border: 1px solid var(--border); display: grid; gap: 8px; }
+.banner.ok { background: var(--wash-good); }
+.banner.bad { background: var(--wash-bad); }
+.banner .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.banner .head strong { font-size: 15px; }
+.banner ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.banner li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; }
+.banner .fix { color: var(--ink-2); font-size: 13px; }
+.rule { font-family: var(--mono); font-size: 11px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; height: fit-content; white-space: nowrap; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.tile .value { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; margin-top: 2px; }
+.tile .sub { color: var(--muted); font-size: 12px; }
+
+.status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12.5px; color: var(--ink); }
+.dot { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
+.ic { font-size: 11px; width: 14px; height: 14px; border-radius: 50%; display: inline-grid; place-items: center; color: #fff; font-weight: 700; flex: none; }
+.s-passed .ic, .ic.s-passed { background: var(--good); }
+.s-failed .ic, .s-error .ic, .ic.s-failed, .ic.s-error { background: var(--critical); }
+.s-planned .ic, .ic.s-planned { background: var(--warning); color: #3a2800; }
+.s-skipped .ic, .ic.s-skipped { background: var(--skip); }
+.s-flaky .ic, .ic.s-flaky { background: var(--serious); }
+
+.stackbar { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; margin: 6px 0 10px; }
+.stackbar div { min-width: 3px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--ink-2); font-size: 12.5px; }
+.legend b { color: var(--ink); font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+td { padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--surface-2); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+.muted { color: var(--muted); }
+.ink2 { color: var(--ink-2); }
+.badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); white-space: nowrap; }
+.badge.ok { background: var(--wash-good); color: var(--good-text); border-color: transparent; }
+.badge.bad { background: var(--wash-bad); color: var(--critical); border-color: transparent; }
+.badge.warn { background: var(--wash-warn); border-color: transparent; color: var(--ink); }
+.id { font-family: var(--mono); font-size: 12px; font-weight: 600; white-space: nowrap; }
+
+.strip { display: inline-flex; gap: 2px; align-items: center; vertical-align: middle; }
+.strip i { width: 6px; height: 14px; border-radius: 2px; display: inline-block; }
+.strip i.p { background: var(--good); }
+.strip i.f, .strip i.e { background: var(--critical); }
+.strip i.s { background: var(--skip); opacity: 0.6; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.filters input[type=search] { flex: 1 1 220px; min-width: 0; padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font: inherit; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.seg button { background: var(--surface); border: 0; padding: 6px 11px; cursor: pointer; color: var(--ink-2); font-size: 12.5px; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button.on { background: var(--ink); color: var(--surface); }
+
+.feature { border-top: 1px solid var(--grid); padding-top: 14px; margin-top: 14px; }
+.feature:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.feature .fhead { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 8px; }
+.feature .fhead h3 { margin: 0; font-size: 14px; }
+
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.tip { position: fixed; pointer-events: none; z-index: 20; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.14); max-width: 340px; display: none; }
+.tip .t { color: var(--muted); font-size: 11px; }
+.empty { color: var(--muted); padding: 18px 0; text-align: center; }
+
+.drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.28); z-index: 30; display: none; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%); background: var(--surface); border-left: 1px solid var(--border); z-index: 31; overflow-y: auto; padding: 20px 22px 40px; display: none; }
+.drawer.open, .drawer-bg.open { display: block; }
+.drawer h2 { margin: 6px 0 4px; font-size: 18px; }
+.drawer .close { position: sticky; top: 0; float: right; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 2px 10px; }
+.drawer pre { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 12px; margin: 8px 0; }
+.drawer .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; }
+.drawer h4 { margin: 18px 0 6px; font-size: 13px; }
+.timeline { display: flex; flex-wrap: wrap; gap: 3px; }
+.timeline i { width: 12px; height: 22px; border-radius: 3px; display: inline-block; cursor: default; }
+.timeline i.passed { background: var(--good); }
+.timeline i.failed, .timeline i.error { background: var(--critical); }
+.timeline i.skipped { background: var(--skip); opacity: 0.6; }
+.timeline i:hover { outline: 2px solid var(--ink); outline-offset: 1px; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; font-size: 13px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+@media (max-width: 600px) { .tile .value { font-size: 22px; } td, th { padding: 6px 5px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">no-more-bugs <span id="project"></span></div>
+    <div class="updated"><span class="live" id="live"></span><span id="updated">loading…</span>
+      <button class="theme" id="theme" type="button" aria-label="Switch color theme">Theme</button></div>
+  </header>
+  <nav class="tabs" id="tabs">
+    <a href="#overview" data-view="overview">Overview</a>
+    <a href="#scenarios" data-view="scenarios">Scenarios<span class="n" id="n-scenarios"></span></a>
+    <a href="#tests" data-view="tests">Tests<span class="n" id="n-tests"></span></a>
+    <a href="#runs" data-view="runs">Runs<span class="n" id="n-runs"></span></a>
+    <a href="#flaky" data-view="flaky">Flaky<span class="n" id="n-flaky"></span></a>
+    <a href="#waivers" data-view="waivers">Waivers<span class="n" id="n-waivers"></span></a>
+  </nav>
+  <main id="main"></main>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="drawer-bg" id="drawer-bg"></div>
+<aside class="drawer" id="drawer" aria-label="Details"></aside>
+
+<script>
+(function () {
+  'use strict';
+  var S = null;           // latest /api/state
+  var version = null;
+  var view = 'overview';
+  var ui = { testFilter: 'all', testQuery: '', drawer: null };
+
+  // ---------- helpers ----------
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function $(id) { return document.getElementById(id); }
+  function ago(iso) {
+    if (!iso) return '';
+    var s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (s < 45) return 'just now';
+    if (s < 3600) return Math.round(s / 60) + ' min ago';
+    if (s < 86400) return Math.round(s / 3600) + ' h ago';
+    return Math.round(s / 86400) + ' d ago';
+  }
+  function when(iso) { return iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''; }
+  function secs(ms) { return ms == null ? '' : ms < 1000 ? ms + ' ms' : (ms / 1000).toFixed(1) + ' s'; }
+  var STATUS = {
+    passed: { icon: '✓', label: 'Passing' }, passing: { icon: '✓', label: 'Passing', cls: 'passed' },
+    failed: { icon: '✗', label: 'Failing' }, failing: { icon: '✗', label: 'Failing', cls: 'failed' },
+    error: { icon: '!', label: 'Error' }, planned: { icon: '○', label: 'No test yet' },
+    skipped: { icon: '–', label: 'Skipped' }, flaky: { icon: '≈', label: 'Flaky' }
+  };
+  function status(st, labelOverride) {
+    var m = STATUS[st] || { icon: '?', label: st };
+    var cls = m.cls || st;
+    return '<span class="status s-' + cls + '"><span class="ic">' + m.icon + '</span>' + esc(labelOverride || m.label) + '</span>';
+  }
+  function strip(recent) {
+    if (!recent) return '<span class="muted">–</span>';
+    return '<span class="strip" aria-label="Recent results, oldest first">' + recent.split('').slice(-20).map(function (c) { return '<i class="' + c + '"></i>'; }).join('') + '</span>';
+  }
+  var tip = $('tip');
+  function showTip(html, ev) {
+    tip.innerHTML = html; tip.style.display = 'block';
+    var x = ev.clientX + 14, y = ev.clientY + 14, r = tip.getBoundingClientRect();
+    if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+    if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+    tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+  }
+  function hideTip() { tip.style.display = 'none'; }
+
+  // ---------- theme ----------
+  var THEME_KEY = 'nmb-theme';
+  function applyTheme(t) { if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); }
+  try { applyTheme(localStorage.getItem(THEME_KEY)); } catch (e) {}
+  $('theme').addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = dark ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  });
+
+  // ---------- data ----------
+  function load() {
+    return fetch('/api/state').then(function (r) { return r.json(); }).then(function (data) {
+      if (data.error) throw new Error(data.error);
+      S = data; render();
+      $('live').classList.remove('off');
+      $('updated').textContent = 'Updated ' + new Date(data.generatedAt).toLocaleTimeString();
+    }).catch(function (err) {
+      $('live').classList.add('off');
+      $('updated').textContent = 'Can\'t reach the dashboard server (' + err.message + ')';
+    });
+  }
+  function poll() {
+    fetch('/api/version').then(function (r) { return r.json(); }).then(function (v) {
+      $('live').classList.remove('off');
+      if (v.version !== version) { version = v.version; return load(); }
+    }).catch(function () { $('live').classList.add('off'); $('updated').textContent = 'Disconnected; retrying…'; })
+      .then(function () { setTimeout(poll, 2000); });
+  }
+
+  // ---------- routing ----------
+  function route() {
+    var h = (location.hash || '#overview').slice(1);
+    view = ['overview', 'scenarios', 'tests', 'runs', 'flaky', 'waivers'].indexOf(h) >= 0 ? h : 'overview';
+    Array.prototype.forEach.call(document.querySelectorAll('#tabs a'), function (a) { a.classList.toggle('active', a.getAttribute('data-view') === view); });
+    render();
+  }
+  window.addEventListener('hashchange', function () { closeDrawer(); route(); });
+
+  function render() {
+    if (!S) return;
+    $('project').textContent = S.project;
+    document.title = 'no-more-bugs · ' + S.project;
+    var flaky = S.tests.filter(function (t) { return t.flaky; });
+    $('n-scenarios').textContent = S.scenarios.length;
+    $('n-tests').textContent = S.tests.length;
+    $('n-runs').textContent = S.runs.length;
+    $('n-flaky').textContent = flaky.length || '';
+    $('n-waivers').textContent = (S.waivers.length + S.requests.length) || '';
+    var html = { overview: overview, scenarios: scenarios, tests: tests, runs: runs, flaky: flakyView, waivers: waivers }[view]();
+    $('main').innerHTML = '<section class="view">' + html + '</section>';
+    wire();
+    if (ui.drawer) openDrawer(ui.drawer, true);
+  }
+
+  // ---------- overview ----------
+  function counts() {
+    var c = { passing: 0, failing: 0, planned: 0, skipped: 0 };
+    S.scenarios.forEach(function (s) { c[s.status]++; });
+    return c;
+  }
+  function overview() {
+    var c = counts();
+    var blocking = S.check.findings.filter(function (f) { return f.severity === 'error' && !f.waived; });
+    var info = S.check.findings.filter(function (f) { return f.severity === 'info'; });
+    var neverFailed = S.scenarios.filter(function (s) { return s.tests.length && !s.proof && s.kind !== 'characterization'; }).length;
+    var flakyTests = S.tests.filter(function (t) { return t.flaky; }).length;
+    var untracked = S.tests.filter(function (t) { return !t.ids.length; }).length;
+
+    var banner = '<div class="banner ' + (S.check.ok ? 'ok' : 'bad') + '"><div class="head">' +
+      status(S.check.ok ? 'passed' : 'failed', S.check.ok ? 'Check passes' : 'Check fails') +
+      '<strong>' + (S.check.ok ? 'This change is tested enough.' : blocking.length + ' problem' + (blocking.length === 1 ? '' : 's') + ' before this change counts as tested') + '</strong>' +
+      '<span class="muted">' + S.check.changed + ' changed file' + (S.check.changed === 1 ? '' : 's') + '</span></div>';
+    if (blocking.length) {
+      banner += '<ul>' + blocking.slice(0, 8).map(function (f) {
+        return '<li><span class="rule">' + esc(f.rule) + '</span><div>' + esc(f.message) + (f.requested ? ' <span class="badge warn">waiver requested</span>' : '') + (f.fix ? '<div class="fix">' + esc(f.fix) + '</div>' : '') + '</div></li>';
+      }).join('') + '</ul>';
+      if (blocking.length > 8) banner += '<div class="muted">…and ' + (blocking.length - 8) + ' more. Run <code>nmb check</code> for all of them.</div>';
+    }
+    if (info.length) banner += '<ul>' + info.map(function (f) { return '<li><span class="rule">' + esc(f.rule) + '</span><div>' + esc(f.message) + '</div></li>'; }).join('') + '</ul>';
+    banner += '</div>';
+
+    var tiles = '<div class="tiles">' +
+      tile('Scenarios', S.scenarios.length, S.features.length + ' feature' + (S.features.length === 1 ? '' : 's')) +
+      tile(status('passing'), c.passing, pct(c.passing, S.scenarios.length)) +
+      tile(status('failing'), c.failing, pct(c.failing, S.scenarios.length)) +
+      tile(status('planned'), c.planned, 'planned, not written') +
+      tile(status('flaky'), flakyTests, 'tests that flip on the same code') +
+      tile('Never seen failing', neverFailed, 'scenarios without proof') +
+      '</div>';
+
+    var total = S.scenarios.length || 1;
+    var segs = [['passing', c.passing, 'var(--good)'], ['failing', c.failing, 'var(--critical)'], ['planned', c.planned, 'var(--warning)'], ['skipped', c.skipped, 'var(--skip)']];
+    var bar = '<div class="card"><h2>Scenario status<small>' + S.scenarios.length + ' scenarios</small></h2>' +
+      (S.scenarios.length ? '<div class="stackbar">' + segs.filter(function (s) { return s[1]; }).map(function (s) {
+        return '<div style="flex:' + s[1] + ';background:' + s[2] + '" data-tip="' + esc(STATUS[s[0]].label + ': ' + s[1] + ' (' + pct(s[1], total) + ')') + '"></div>';
+      }).join('') + '</div><div class="legend">' + segs.map(function (s) {
+        return '<span class="status s-' + (STATUS[s[0]].cls || s[0]) + '"><span class="ic">' + STATUS[s[0]].icon + '</span>' + STATUS[s[0]].label + ' <b>' + s[1] + '</b></span>';
+      }).join('') + '</div>' : '<div class="empty">No scenarios yet. Plan some with the planning-tests skill.</div>') + '</div>';
+
+    var feats = '<div class="card"><h2>Features</h2>' + (S.features.length ? '<div class="tablewrap"><table><thead><tr><th>Feature</th><th>Plan</th><th>Review</th><th class="num">Passing</th><th class="num">Gaps</th></tr></thead><tbody>' +
+      S.features.map(function (f) {
+        var sc = S.scenarios.filter(function (s) { return s.feature === f.slug; });
+        var ok = sc.filter(function (s) { return s.status === 'passing'; }).length;
+        return '<tr class="click" data-feature="' + esc(f.slug) + '"><td><span class="id">' + esc(f.prefix || '') + '</span> ' + esc(f.title || f.slug) + '</td><td>' + planBadge(f.plan) + '</td><td>' + reviewBadge(f.review) + '</td><td class="num">' + ok + '/' + sc.length + '</td><td class="num">' + (sc.length - ok) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : '<div class="empty">No features yet.</div>') + '</div>';
+
+    var recent = S.runs.slice(-8).reverse();
+    var runsCard = '<div class="card"><h2>Recent runs</h2>' + (recent.length ? runTable(recent) : '<div class="empty">No runs recorded yet. Run <code>nmb run</code>.</div>') + '</div>';
+
+    return banner + tiles + '<div class="grid2"><div class="card"><h2>Pass rate per run<small>share of tests passing, all suites</small></h2>' + passRateChart() + '</div>' + bar + '</div>' +
+      '<div class="grid2">' + feats + runsCard + '</div>' +
+      (untracked ? '<div class="muted">' + untracked + ' test' + (untracked === 1 ? '' : 's') + ' have no scenario ID. They\'re still tracked by file and name.</div>' : '');
+  }
+  function tile(label, value, sub) { return '<div class="tile"><div class="label">' + label + '</div><div class="value">' + value + '</div><div class="sub">' + esc(sub) + '</div></div>'; }
+  function pct(n, d) { return d ? Math.round((n / d) * 100) + '%' : '0%'; }
+  function planBadge(p) { return p === 'approved' ? '<span class="badge ok">approved</span>' : '<span class="badge warn">draft</span>'; }
+  function reviewBadge(r) { return !r ? '<span class="badge">not reviewed</span>' : r.verdict === 'pass' ? '<span class="badge ok">passed ' + esc(ago(r.at)) + '</span>' : '<span class="badge bad">failed</span>'; }
+
+  function passRateChart() {
+    var runs = S.runs.filter(function (r) { return !r.error && r.totals; }).slice(-60);
+    if (runs.length < 2) return '<div class="empty">The chart appears after two runs.</div>';
+    var W = 640, H = 200, L = 36, R = 10, T = 10, B = 26;
+    var pts = runs.map(function (r, i) {
+      var t = r.totals, ran = t.passed + t.failed + t.error;
+      var rate = ran ? t.passed / ran : 0;
+      return { x: L + (i / (runs.length - 1)) * (W - L - R), y: T + (1 - rate) * (H - T - B), rate: rate, run: r };
+    });
+    var grid = [0, 0.5, 1].map(function (v) {
+      var y = T + (1 - v) * (H - T - B);
+      return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" stroke="var(--grid)" stroke-width="1"/><text x="' + (L - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + (v * 100) + '%</text>';
+    }).join('');
+    var path = pts.map(function (p, i) { return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ');
+    var last = pts[pts.length - 1];
+    var labels = '<text x="' + L + '" y="' + (H - 6) + '">' + esc(when(runs[0].time)) + '</text><text x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + esc(when(last.run.time)) + '</text>';
+    return '<div class="chart" id="rate-chart"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Pass rate per run">' + grid +
+      '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="var(--axis)"/>' +
+      '<path d="' + path + '" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<circle cx="' + last.x + '" cy="' + last.y + '" r="4" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2"/>' +
+      '<text x="' + (last.x - 8) + '" y="' + Math.max(12, last.y - 9) + '" text-anchor="end" style="fill:var(--ink);font-weight:600">' + Math.round(last.rate * 100) + '%</text>' +
+      '<line id="xhair" x1="0" x2="0" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--axis)" stroke-dasharray="3 3" style="display:none"/>' +
+      '<circle id="xdot" r="4" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2" style="display:none"/>' +
+      labels + '<rect id="hit" x="' + L + '" y="0" width="' + (W - L - R) + '" height="' + H + '" fill="transparent"/></svg></div>' +
+      '<script type="application/json" id="rate-data">' + JSON.stringify(pts.map(function (p) { return { x: p.x, y: p.y, rate: p.rate, time: p.run.time, suite: p.run.suite, totals: p.run.totals, actor: p.run.actor }; })).replace(/</g, '\\u003c') + '<\/script>';
+  }
+
+  function runTable(rows) {
+    return '<div class="tablewrap"><table><thead><tr><th>When</th><th>Suite</th><th>Result</th><th class="num">Passed</th><th class="num">Failed</th><th class="num">Skipped</th><th>By</th><th class="num">Time</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var t = r.totals || { passed: 0, failed: 0, error: 0, skipped: 0 };
+        var bad = t.failed + t.error;
+        var st = r.error ? status('error', 'No report') : bad ? status('failed', 'Failed') : status('passed', 'Passed');
+        return '<tr><td title="' + esc(r.time) + '">' + esc(ago(r.time)) + '</td><td>' + esc(r.suite) + (r.partial ? ' <span class="badge">partial</span>' : '') + '</td><td>' + st + '</td><td class="num">' + t.passed + '</td><td class="num">' + bad + '</td><td class="num">' + t.skipped + '</td><td class="ink2">' + esc((r.actor || '').replace('agent:', 'agent · ')) + '</td><td class="num">' + secs(r.durationMs) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  // ---------- scenarios ----------
+  function scenarios() {
+    if (!S.features.length) return '<div class="card"><div class="empty">No features yet. The planning-tests skill writes them to <code>.nomorebugs/features/</code>.</div></div>';
+    return '<div class="card">' + S.features.map(function (f) {
+      var sc = S.scenarios.filter(function (s) { return s.feature === f.slug; });
+      return '<div class="feature"><div class="fhead"><h3>' + esc(f.title || f.slug) + '</h3><span class="id">' + esc(f.prefix || '') + '</span>' + planBadge(f.plan) + reviewBadge(f.review) +
+        (f.errors.length ? '<span class="badge bad">' + f.errors.length + ' file problem' + (f.errors.length === 1 ? '' : 's') + '</span>' : '') +
+        '<span class="muted mono">' + esc(f.covers.join(', ')) + '</span></div>' +
+        (sc.length ? '<div class="tablewrap"><table><thead><tr><th>Status</th><th>ID</th><th>Scenario</th><th>Type</th><th>Priority</th><th>Seen failing</th><th class="num">Tests</th></tr></thead><tbody>' +
+          sc.map(function (s) {
+            return '<tr class="click" data-scenario="' + esc(s.id) + '"><td>' + status(s.flaky ? 'flaky' : s.status) + '</td><td class="id">' + esc(s.id) + '</td><td>' + esc(s.title) + (s.kind !== 'behavior' ? ' <span class="badge">' + esc(s.kind) + '</span>' : '') + '</td><td>' + esc(s.type) + '</td><td>' + esc(s.priority) + '</td><td>' + proofCell(s) + '</td><td class="num">' + s.tests.length + '</td></tr>';
+          }).join('') + '</tbody></table></div>' : '<div class="muted">No scenarios in this plan yet.</div>') + '</div>';
+    }).join('') + '</div>';
+  }
+  function proofCell(s) {
+    if (s.proof) return '<span class="status s-passed"><span class="ic">✓</span>' + esc(ago(s.proof.at)) + '</span>';
+    if (s.kind === 'characterization') return '<span class="muted">not needed</span>';
+    if (!s.tests.length) return '<span class="muted">–</span>';
+    return '<span class="status s-planned"><span class="ic">!</span>never</span>';
+  }
+
+  // ---------- tests ----------
+  function tests() {
+    var q = ui.testQuery.toLowerCase();
+    var rows = S.tests.filter(function (t) {
+      if (ui.testFilter === 'failing' && !(t.status === 'failed' || t.status === 'error')) return false;
+      if (ui.testFilter === 'flaky' && !t.flaky) return false;
+      if (ui.testFilter === 'untracked' && t.ids.length) return false;
+      if (ui.testFilter === 'skipped' && t.status !== 'skipped') return false;
+      return !q || (t.name + ' ' + (t.file || '') + ' ' + t.ids.join(' ')).toLowerCase().indexOf(q) >= 0;
+    }).sort(function (a, b) { return rank(a) - rank(b) || a.key.localeCompare(b.key); });
+    var seg = [['all', 'All'], ['failing', 'Failing'], ['flaky', 'Flaky'], ['skipped', 'Skipped'], ['untracked', 'No ID']].map(function (f) {
+      return '<button type="button" data-filter="' + f[0] + '" class="' + (ui.testFilter === f[0] ? 'on' : '') + '">' + f[1] + '</button>';
+    }).join('');
+    return '<div class="card"><div class="filters"><input type="search" id="q" placeholder="Search tests, files or IDs" value="' + esc(ui.testQuery) + '"><div class="seg">' + seg + '</div><span class="muted">' + rows.length + ' of ' + S.tests.length + '</span></div>' +
+      (rows.length ? '<div class="tablewrap"><table><thead><tr><th>Status</th><th>Test</th><th>Scenario</th><th>Suite</th><th>Recent runs</th><th class="num">Time</th></tr></thead><tbody>' +
+        rows.slice(0, 500).map(function (t) {
+          return '<tr class="click" data-test="' + esc(t.key) + '"><td>' + status(t.flaky ? 'flaky' : t.status) + '</td><td><div>' + esc(t.name) + '</div><div class="muted mono">' + esc(t.file || '') + '</div></td><td>' + (t.ids.length ? t.ids.map(function (i) { return '<span class="id">' + esc(i) + '</span>'; }).join(' ') : '<span class="muted">–</span>') + '</td><td class="ink2">' + esc(t.suite) + '</td><td>' + strip(t.recent) + '</td><td class="num">' + secs(t.durationMs) + '</td></tr>';
+        }).join('') + '</tbody></table></div>' + (rows.length > 500 ? '<div class="muted">Showing the first 500. Narrow the search to see more.</div>' : '')
+        : '<div class="empty">No tests match.</div>') + '</div>';
+  }
+  function rank(t) { return t.status === 'failed' || t.status === 'error' ? 0 : t.flaky ? 1 : t.status === 'skipped' ? 2 : 3; }
+
+  function runs() {
+    var rows = S.runs.slice().reverse();
+    return '<div class="card"><h2>Run history<small>' + rows.length + ' runs, newest first</small></h2>' + (rows.length ? runTable(rows) : '<div class="empty">No runs yet.</div>') + '</div>';
+  }
+
+  function flakyView() {
+    var rows = S.tests.filter(function (t) { return t.flaky; });
+    return '<div class="card"><h2>Flaky tests<small>passed and failed on the same code</small></h2>' + (rows.length ? '<div class="tablewrap"><table><thead><tr><th>Test</th><th>Scenario</th><th>Recent runs</th><th class="num">Passes</th><th class="num">Failures</th></tr></thead><tbody>' +
+      rows.map(function (t) { return '<tr class="click" data-test="' + esc(t.key) + '"><td><div>' + esc(t.name) + '</div><div class="muted mono">' + esc(t.file || t.suite) + '</div></td><td>' + (t.ids.map(function (i) { return '<span class="id">' + esc(i) + '</span>'; }).join(' ') || '–') + '</td><td>' + strip(t.recent) + '</td><td class="num">' + t.passes + '</td><td class="num">' + t.fails + '</td></tr>'; }).join('') +
+      '</tbody></table></div>' : '<div class="empty">No flaky tests. A test is flaky when it both passes and fails on identical code.</div>') + '</div>';
+  }
+
+  function waivers() {
+    var g = S.waivers, r = S.requests;
+    return '<div class="card"><h2>Waiting for you<small>requested by the agent</small></h2>' + (r.length ? '<div class="tablewrap"><table><thead><tr><th>Target</th><th>Rule</th><th>Reason</th><th>Requested</th><th>To grant</th></tr></thead><tbody>' +
+      r.map(function (w) { return '<tr><td class="mono">' + esc(w.target) + '</td><td>' + esc(w.rule || 'any') + '</td><td>' + esc(w.reason) + '</td><td>' + esc(ago(w.at)) + '</td><td><code>nmb grant ' + esc(w.target) + '</code></td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">No pending requests.</div>') + '</div>' +
+      '<div class="card"><h2>Granted waivers<small>committed in .nomorebugs/waivers.jsonl</small></h2>' + (g.length ? '<div class="tablewrap"><table><thead><tr><th>Target</th><th>Rules</th><th>Reason</th><th>Granted</th><th>How</th></tr></thead><tbody>' +
+      g.map(function (w) { return '<tr><td class="mono">' + esc(w.target) + '</td><td>' + esc((w.rules || ['all']).join(', ')) + '</td><td>' + esc(w.reason) + '</td><td>' + esc(when(w.at)) + '</td><td class="ink2">' + esc(w.via) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">No waivers granted.</div>') + '</div>';
+  }
+
+  // ---------- drawer ----------
+  function openDrawer(d, keep) {
+    ui.drawer = d;
+    var el = $('drawer');
+    var html = '<button class="close" type="button" id="close">Close</button>';
+    var q;
+    if (d.type === 'scenario') {
+      var s = S.scenarios.find(function (x) { return x.id === d.id; });
+      if (!s) return closeDrawer();
+      html += '<div class="id">' + esc(s.id) + '</div><h2>' + esc(s.title) + '</h2><div class="meta">' + status(s.flaky ? 'flaky' : s.status) + '<span class="badge">' + esc(s.type) + '</span><span class="badge">' + esc(s.priority) + '</span>' + (s.kind !== 'behavior' ? '<span class="badge">' + esc(s.kind) + '</span>' : '') + planBadge(s.plan) + '</div>' +
+        (s.body ? '<pre>' + esc(s.body) + '</pre>' : '') +
+        '<h4>Proof it can fail</h4>' + (s.proof ? '<div>' + status('passed', 'Seen failing ' + ago(s.proof.at) + ', with this message:') + '</div><pre>' + esc(s.proof.message) + '</pre>' : '<div class="muted">' + (s.kind === 'characterization' ? 'Characterization tests lock in current behavior and don\'t need one.' : 'Never seen failing.') + '</div>') +
+        '<h4>Tests</h4>' + (s.tests.length ? '<table><tbody>' + s.tests.map(function (t) { return '<tr><td>' + status(t.status) + '</td><td>' + esc(t.name) + '<div class="muted mono">' + esc(t.file || t.suiteName) + '</div>' + (t.message ? '<pre>' + esc(t.message) + '</pre>' : '') + '</td></tr>'; }).join('') + '</tbody></table>' : '<div class="muted">No test carries this ID yet.</div>') +
+        '<h4>History</h4><div id="hist" class="muted">Loading…</div>';
+      q = 'id=' + encodeURIComponent(s.id);
+    } else if (d.type === 'test') {
+      var t = S.tests.find(function (x) { return x.key === d.key; });
+      if (!t) return closeDrawer();
+      html += '<h2>' + esc(t.name) + '</h2><div class="meta">' + status(t.flaky ? 'flaky' : t.status) + t.ids.map(function (i) { return '<span class="badge">' + esc(i) + '</span>'; }).join('') + (t.everPassed ? '<span class="badge">protected</span>' : '') + '</div>' +
+        '<dl class="kv"><dt>File</dt><dd class="mono">' + esc(t.file || '–') + '</dd><dt>Suite</dt><dd>' + esc(t.suite) + '</dd><dt>First seen</dt><dd>' + esc(when(t.firstSeen)) + '</dd><dt>First failed</dt><dd>' + esc(when(t.firstFailed) || 'never') + '</dd><dt>Passes / failures</dt><dd>' + t.passes + ' / ' + t.fails + '</dd></dl>' +
+        (t.message ? '<h4>Latest failure</h4><pre>' + esc(t.message) + '</pre>' : '') +
+        '<h4>History</h4><div id="hist" class="muted">Loading…</div>';
+      q = 'key=' + encodeURIComponent(t.key);
+    } else if (d.type === 'feature') {
+      var f = S.features.find(function (x) { return x.slug === d.slug; });
+      if (!f) return closeDrawer();
+      var sc = S.scenarios.filter(function (x) { return x.feature === f.slug; });
+      html += '<div class="id">' + esc(f.prefix) + '</div><h2>' + esc(f.title || f.slug) + '</h2><div class="meta">' + planBadge(f.plan) + reviewBadge(f.review) + '</div>' +
+        '<dl class="kv"><dt>File</dt><dd class="mono">.nomorebugs/features/' + esc(f.slug) + '.md</dd><dt>Covers</dt><dd class="mono">' + esc(f.covers.join(', ') || '–') + '</dd>' + (f.review && f.review.notes ? '<dt>Review notes</dt><dd>' + esc(f.review.notes) + '</dd>' : '') + '</dl>' +
+        (f.errors.length ? '<h4>File problems</h4><pre>' + esc(f.errors.join('\n')) + '</pre>' : '') +
+        '<h4>Scenarios</h4><table><tbody>' + sc.map(function (s) { return '<tr class="click" data-scenario="' + esc(s.id) + '"><td>' + status(s.status) + '</td><td class="id">' + esc(s.id) + '</td><td>' + esc(s.title) + '</td></tr>'; }).join('') + '</tbody></table>';
+    }
+    el.innerHTML = html;
+    el.classList.add('open'); $('drawer-bg').classList.add('open');
+    $('close').addEventListener('click', closeDrawer);
+    wireRows(el);
+    if (q) fetch('/api/history?' + q).then(function (r) { return r.json(); }).then(function (h) {
+      var box = $('hist'); if (!box) return;
+      if (!h.length) { box.textContent = 'No recorded runs.'; return; }
+      box.className = '';
+      box.innerHTML = '<div class="timeline">' + h.slice(-120).map(function (x, i) { return '<i class="' + esc(x.status) + '" data-h="' + i + '"></i>'; }).join('') + '</div>' +
+        '<div class="legend" style="margin-top:8px">' + ['passed', 'failed', 'skipped'].map(function (st) { return status(st, st === 'passed' ? 'Passed' : st === 'failed' ? 'Failed' : 'Skipped'); }).join('') + '<span class="muted">oldest to newest · ' + h.length + ' results</span></div>' +
+        '<table style="margin-top:10px"><thead><tr><th>When</th><th>Result</th><th>By</th><th class="num">Time</th></tr></thead><tbody>' +
+        h.slice(-15).reverse().map(function (x) { return '<tr><td title="' + esc(x.time) + '">' + esc(when(x.time)) + '</td><td>' + status(x.status, x.status === 'passed' ? 'Passed' : x.status === 'skipped' ? 'Skipped' : 'Failed') + (x.message ? '<div class="muted">' + esc(x.message.split('\n')[0].slice(0, 160)) + '</div>' : '') + '</td><td class="ink2">' + esc(x.actor || '') + '</td><td class="num">' + secs(x.durationMs) + '</td></tr>'; }).join('') + '</tbody></table>';
+      var cells = box.querySelectorAll('.timeline i');
+      var start = Math.max(0, h.length - 120);
+      Array.prototype.forEach.call(cells, function (c) {
+        c.addEventListener('mousemove', function (ev) {
+          var x = h[start + Number(c.getAttribute('data-h'))];
+          showTip('<div class="t">' + esc(when(x.time)) + ' · ' + esc(x.suite) + '</div>' + status(x.status) + '<div>' + esc(x.name) + '</div>' + (x.message ? '<div class="muted">' + esc(x.message.slice(0, 200)) + '</div>' : ''), ev);
+        });
+        c.addEventListener('mouseleave', hideTip);
+      });
+    });
+  }
+  function closeDrawer() { ui.drawer = null; $('drawer').classList.remove('open'); $('drawer-bg').classList.remove('open'); }
+  $('drawer-bg').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+
+  function wireRows(rootEl) {
+    Array.prototype.forEach.call(rootEl.querySelectorAll('[data-scenario]'), function (r) { r.addEventListener('click', function () { openDrawer({ type: 'scenario', id: r.getAttribute('data-scenario') }); }); });
+    Array.prototype.forEach.call(rootEl.querySelectorAll('[data-test]'), function (r) { r.addEventListener('click', function () { openDrawer({ type: 'test', key: r.getAttribute('data-test') }); }); });
+    Array.prototype.forEach.call(rootEl.querySelectorAll('[data-feature]'), function (r) { r.addEventListener('click', function () { openDrawer({ type: 'feature', slug: r.getAttribute('data-feature') }); }); });
+  }
+
+  function wire() {
+    var main = $('main');
+    wireRows(main);
+    Array.prototype.forEach.call(main.querySelectorAll('[data-tip]'), function (el) {
+      el.addEventListener('mousemove', function (ev) { showTip(esc(el.getAttribute('data-tip')), ev); });
+      el.addEventListener('mouseleave', hideTip);
+    });
+    Array.prototype.forEach.call(main.querySelectorAll('[data-filter]'), function (b) { b.addEventListener('click', function () { ui.testFilter = b.getAttribute('data-filter'); render(); }); });
+    var q = $('q');
+    if (q) q.addEventListener('input', function () {
+      ui.testQuery = q.value; var pos = q.selectionStart; render();
+      var nq = $('q'); nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (e) {}
+    });
+    var hit = document.getElementById('hit');
+    if (hit) {
+      var data = JSON.parse($('rate-data').textContent);
+      var svg = hit.ownerSVGElement, xh = $('xhair'), xd = $('xdot');
+      hit.addEventListener('mousemove', function (ev) {
+        var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+        var p = pt.matrixTransform(svg.getScreenCTM().inverse());
+        var best = data[0];
+        data.forEach(function (d) { if (Math.abs(d.x - p.x) < Math.abs(best.x - p.x)) best = d; });
+        xh.setAttribute('x1', best.x); xh.setAttribute('x2', best.x); xh.style.display = '';
+        xd.setAttribute('cx', best.x); xd.setAttribute('cy', best.y); xd.style.display = '';
+        var t = best.totals;
+        showTip('<div class="t">' + esc(when(best.time)) + ' · ' + esc(best.suite) + '</div><div><b>' + Math.round(best.rate * 100) + '%</b> passing</div><div class="muted">' + t.passed + ' passed · ' + (t.failed + t.error) + ' failed · ' + t.skipped + ' skipped</div>', ev);
+      });
+      hit.addEventListener('mouseleave', function () { xh.style.display = 'none'; xd.style.display = 'none'; hideTip(); });
+    }
+  }
+
+  route();
+  poll();
+})();
+</script>
+</body>
+</html>
