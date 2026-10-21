@@ -1,3 +1,7 @@
 node_modules/
 .nomorebugs/local/
 *.tmp
+
+# Design notes kept out of the repository
+/recommended_design.html
+/docs/
