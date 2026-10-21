@@ -4,6 +4,8 @@ Testing guardrails for coding agents. Before an agent writes code, it plans the 
 
 It works with Claude Code and Codex, which get the full experience through hooks, and with any other agent that reads [Agent Skills](https://agentskills.io) or `AGENTS.md`. It also works with any test runner that can write a JUnit XML, NUnit XML, TRX or Dart JSON report, which covers TypeScript/JavaScript, Python, Java/Kotlin, Dart/Flutter, Unity, Godot, .NET, Go, Ruby, PHP, Rust and more.
 
+![The no-more-bugs dashboard for a sample shop project: the check lists two problems with a fix for each, tiles count scenarios by status, a chart shows the pass rate per run, and tables list features and recent runs](assets/screenshots/overview.png)
+
 ## How it works
 
 ```
@@ -155,6 +157,10 @@ In practice you don't type most of these; the agent does, following the skills. 
 - **Scenarios:** every plan, with each scenario's status, type, priority and proof; click one for its tests and full history.
 - **Tests:** every test in the latest runs, searchable and filterable (failing, flaky, skipped, without an ID), with a strip of its recent results.
 - **Runs, Flaky, Waivers.**
+
+Click a scenario to see its Given/When/Then, the failure that proved its test can fail, and every recorded run:
+
+![A scenario's detail panel in dark mode: CHK-002 "An expired coupon is rejected", its Given/When/Then, the first failure message recorded as proof, its test, and a history of one failed run followed by five passing runs](assets/screenshots/scenario-detail.png)
 
 A test is **flaky** when it both passed and failed on identical code (same content fingerprint), so flakiness is never confused with you changing the code.
 

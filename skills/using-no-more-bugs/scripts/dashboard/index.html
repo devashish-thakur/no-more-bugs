@@ -91,7 +91,7 @@ section.view { padding-top: 20px; display: grid; gap: 20px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; min-width: 0; }
 .card h2 { font-size: 14px; margin: 0 0 12px; font-weight: 600; }
 .card h2 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
-.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 900px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
 
 .banner { border-radius: 10px; padding: 14px 18px; border: 1px solid var(--border); display: grid; gap: 8px; }
@@ -376,7 +376,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-sp
   function passRateChart() {
     var runs = S.runs.filter(function (r) { return !r.error && r.totals; }).slice(-60);
     if (runs.length < 2) return '<div class="empty">The chart appears after two runs.</div>';
-    var W = 640, H = 200, L = 36, R = 10, T = 10, B = 26;
+    // T leaves room above the 100% line for the end-point label.
+    var W = 640, H = 210, L = 36, R = 10, T = 24, B = 26;
     var pts = runs.map(function (r, i) {
       var t = r.totals, ran = t.passed + t.failed + t.error;
       var rate = ran ? t.passed / ran : 0;
